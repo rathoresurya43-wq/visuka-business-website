@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Users, Globe, Target, Factory, Check } from 'lucide-react';
+import { Users, Globe, Target, Factory, Check, Award, CheckCircle } from 'lucide-react';
 
 export function About() {
   return (
@@ -34,7 +34,9 @@ export function About() {
               <h2 className="text-3xl font-bold text-stone-900 mb-6">Manufacturing Excellence</h2>
               <div className="prose prose-lg text-stone-600">
                 <p>
-                  Established with a vision to provide superior raw materials to the industry, Visuka Minerals & Powders has grown into a trusted name in calcium carbonate and calcite processing. Our facility is equipped with advanced technology to grind, micronize, and classify minerals to exact specifications.
+                  Visuka Minerals was established with a clear vision, to build a dependable, quality-driven mineral company backed by own mining resources and advanced processing capabilities.
+
+                  Calcium Carbonate (CaCO₃) is one of the most widely used industrial minerals in the world, naturally occurring in limestone, marble, and calcite deposits. Its chemical stability, brightness, and versatility make it indispensable across industries.
                 </p>
                 <p>
                   We control the entire supply chain—from sourcing high-grade limestone from our own quarries to final packaging. This vertical integration allows us to guarantee consistency in whiteness, purity, and particle size for every bag that leaves our plant.
@@ -45,7 +47,7 @@ export function About() {
             <div className="grid grid-cols-2 gap-6">
                <div className="space-y-6 mt-12">
                   <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
-                    <h3 className="text-4xl font-bold text-emerald-700 mb-2">20+</h3>
+                    <h3 className="text-4xl font-bold text-emerald-700 mb-2">12+</h3>
                     <p className="text-stone-600 font-medium">Years Experience</p>
                   </div>
                   <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
@@ -53,14 +55,10 @@ export function About() {
                     <p className="text-stone-600 font-medium">Tons Annual Capacity</p>
                   </div>
                </div>
-               <div className="space-y-6">
+               <div className="space-y-6 mt-12">
                   <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100">
                     <h3 className="text-4xl font-bold text-emerald-700 mb-2">99%</h3>
                     <p className="text-stone-600 font-medium">Purity Guarantee</p>
-                  </div>
-                  <div className="bg-emerald-800 p-6 rounded-2xl text-white">
-                    <h3 className="text-4xl font-bold mb-2">ISO</h3>
-                    <p className="text-emerald-200 font-medium">9001 Certified</p>
                   </div>
                </div>
             </div>

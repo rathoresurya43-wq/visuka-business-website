@@ -1,54 +1,81 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
 import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '../supabaseClient';
+import { useLocation } from 'react-router-dom';
 
-interface ContactFormData {
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  product: string;
-  message: string;
+declare global {
+  interface Window {
+    Forminit: any;
+  }
 }
 
 export function Contact() {
-  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<ContactFormData>();
   const location = useLocation();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [productValue, setProductValue] = useState('');
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const productParam = searchParams.get('product');
     if (productParam) {
-      setValue('product', productParam);
+      setProductValue(productParam);
     }
-  }, [location, setValue]);
+  }, [location]);
 
-  const onSubmit = async (data: ContactFormData) => {
+  // Generate random phone placeholder
+  const generateRandomPhone = () => {
+    const digits = [];
+    for (let i = 0; i < 10; i++) {
+      digits.push(Math.floor(Math.random() * 10));
+    }
+    return digits.join('');
+  };
+
+  const [phonePlaceholder] = useState(generateRandomPhone());
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const form = formRef.current;
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const countryCode = (form.querySelector('#country-code') as HTMLSelectElement)?.value || '+91';
+    const phoneNumber = (form.querySelector('#phone-input') as HTMLInputElement)?.value.replace(/\D/g, '') || '';
+
+    // Combine country code with phone
+    formData.set('fi-sender-phone', countryCode + phoneNumber);
+
     try {
-      const { error } = await supabase
-        .from('inquiries')
-        .insert([
-          {
-            name: data.name,
-            company: data.company,
-            email: data.email,
-            phone: data.phone,
-            product_interest: data.product,
-            message: data.message,
-            created_at: new Date().toISOString(),
-          }
-        ]);
+      if (window.Forminit) {
+        const forminit = new window.Forminit();
+        const { error } = await forminit.submit('x378q8g10wp', formData);
 
-      if (error) throw error;
-      
+        if (error) {
+          throw new Error(error.message);
+        }
+      } else {
+        // Fallback if SDK not loaded
+        const response = await fetch('https://forminit.com/f/x378q8g10wp', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Form submission failed');
+        }
+      }
+
       toast.success("Inquiry received! We'll get back to you with a quote shortly.");
-      reset();
+      form.reset();
+      setProductValue('');
     } catch (error: any) {
       console.error('Error submitting form:', error);
       toast.error('Failed to submit inquiry. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -77,9 +104,9 @@ export function Contact() {
                   <div>
                     <p className="font-semibold text-emerald-100 text-sm uppercase tracking-wider mb-1">Manufacturing Plant</p>
                     <p className="text-white leading-relaxed">
-                      123 Industrial Park,<br />
-                      Mining Zone B,<br />
-                      State, Country 12345
+                      F248, Makrana,<br />
+                      Rajasthan 341502,<br />
+                      India
                     </p>
                   </div>
                 </div>
@@ -90,7 +117,7 @@ export function Contact() {
                   </div>
                   <div>
                     <p className="font-semibold text-emerald-100 text-sm uppercase tracking-wider mb-1">Sales Hotline</p>
-                    <p className="text-white text-lg">+1 (888) VISUKA-01</p>
+                    <p className="text-white text-lg">+91-8375072152</p>
                   </div>
                 </div>
 
@@ -100,7 +127,7 @@ export function Contact() {
                   </div>
                   <div>
                     <p className="font-semibold text-emerald-100 text-sm uppercase tracking-wider mb-1">Sales Email</p>
-                    <p className="text-white">sales@visuka.com</p>
+                    <p className="text-white">sales@visukaminerals.com</p>
                   </div>
                 </div>
               </div>
@@ -113,70 +140,114 @@ export function Contact() {
 
           {/* Form Side */}
           <div className="lg:w-2/3 p-12">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-bold text-stone-700 mb-2">Full Name</label>
+                  <label htmlFor="name" className="block text-sm font-bold text-stone-700 mb-2">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     id="name"
+                    name="fi-sender-fullName"
                     type="text"
-                    className={`w-full px-5 py-4 bg-stone-50 rounded-xl border ${errors.name ? 'border-red-500' : 'border-stone-200'} focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all`}
+                    required
                     placeholder="John Doe"
-                    {...register("name", { required: "Name is required" })}
+                    className="w-full px-5 py-4 bg-stone-50 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                   />
-                  {errors.name && <p className="mt-1 text-xs text-red-500 font-medium">{errors.name.message}</p>}
                 </div>
                 
                 <div>
-                  <label htmlFor="company" className="block text-sm font-bold text-stone-700 mb-2">Company</label>
+                  <label htmlFor="company" className="block text-sm font-bold text-stone-700 mb-2">
+                    Company <span className="text-red-500">*</span>
+                  </label>
                   <input
                     id="company"
+                    name="fi-text-company"
                     type="text"
-                    className={`w-full px-5 py-4 bg-stone-50 rounded-xl border ${errors.company ? 'border-red-500' : 'border-stone-200'} focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all`}
+                    required
                     placeholder="Company Ltd."
-                    {...register("company", { required: "Company is required" })}
+                    className="w-full px-5 py-4 bg-stone-50 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-stone-700 mb-2">Work Email</label>
+                  <label htmlFor="email" className="block text-sm font-bold text-stone-700 mb-2">
+                    Work Email <span className="text-red-500">*</span>
+                  </label>
                   <input
                     id="email"
+                    name="fi-sender-email"
                     type="email"
-                    className={`w-full px-5 py-4 bg-stone-50 rounded-xl border ${errors.email ? 'border-red-500' : 'border-stone-200'} focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all`}
+                    required
                     placeholder="john@company.com"
-                    {...register("email", { 
-                      required: "Email is required",
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Invalid email"
-                      }
-                    })}
+                    className="w-full px-5 py-4 bg-stone-50 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                   />
-                  {errors.email && <p className="mt-1 text-xs text-red-500 font-medium">{errors.email.message}</p>}
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-bold text-stone-700 mb-2">Phone</label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    className={`w-full px-5 py-4 bg-stone-50 rounded-xl border ${errors.phone ? 'border-red-500' : 'border-stone-200'} focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all`}
-                    placeholder="+1 (555) 000-0000"
-                    {...register("phone", { required: "Phone is required" })}
-                  />
+                  <label htmlFor="phone" className="block text-sm font-bold text-stone-700 mb-2">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex">
+                    <select
+                      id="country-code"
+                      className="px-3 py-4 bg-stone-50 rounded-l-xl border border-r-0 border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    >
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+971">🇦🇪 +971</option>
+                      <option value="+966">🇸🇦 +966</option>
+                      <option value="+65">🇸🇬 +65</option>
+                      <option value="+81">🇯🇵 +81</option>
+                      <option value="+86">🇨🇳 +86</option>
+                      <option value="+61">🇦🇺 +61</option>
+                      <option value="+49">🇩🇪 +49</option>
+                      <option value="+33">🇫🇷 +33</option>
+                      <option value="+39">🇮🇹 +39</option>
+                      <option value="+34">🇪🇸 +34</option>
+                      <option value="+7">🇷🇺 +7</option>
+                      <option value="+55">🇧🇷 +55</option>
+                      <option value="+27">🇿🇦 +27</option>
+                      <option value="+20">🇪🇬 +20</option>
+                      <option value="+90">🇹🇷 +90</option>
+                      <option value="+82">🇰🇷 +82</option>
+                      <option value="+62">🇮🇩 +62</option>
+                      <option value="+92">🇵🇰 +92</option>
+                      <option value="+880">🇧🇩 +880</option>
+                      <option value="+94">🇱🇰 +94</option>
+                      <option value="+977">🇳🇵 +977</option>
+                      <option value="+95">🇲🇲 +95</option>
+                      <option value="+84">🇻🇳 +84</option>
+                      <option value="+66">🇹🇭 +66</option>
+                      <option value="+63">🇵🇭 +63</option>
+                      <option value="+60">🇲🇾 +60</option>
+                      <option value="+98">🇮🇷 +98</option>
+                    </select>
+                    <input
+                      id="phone-input"
+                      type="tel"
+                      required
+                      placeholder={phonePlaceholder}
+                      className="flex-1 px-5 py-4 bg-stone-50 rounded-r-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="product" className="block text-sm font-bold text-stone-700 mb-2">Product Interest</label>
+                <label htmlFor="product" className="block text-sm font-bold text-stone-700 mb-2">
+                  Product Interest
+                </label>
                 <div className="relative">
-                   <select
+                  <select
                     id="product"
+                    name="fi-text-product"
+                    value={productValue}
+                    onChange={(e) => setProductValue(e.target.value)}
                     className="w-full px-5 py-4 bg-stone-50 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none"
-                    {...register("product")}
                   >
                     <option value="">Select a product...</option>
                     <option value="Calcium Carbonate Powder">Calcium Carbonate Powder</option>
@@ -186,21 +257,25 @@ export function Contact() {
                     <option value="Other">Other / Custom Request</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-stone-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-bold text-stone-700 mb-2">Message</label>
+                <label htmlFor="message" className="block text-sm font-bold text-stone-700 mb-2">
+                  Message <span className="text-red-500">*</span>
+                </label>
                 <textarea
                   id="message"
+                  name="fi-text-message"
                   rows={4}
-                  className={`w-full px-5 py-4 bg-stone-50 rounded-xl border ${errors.message ? 'border-red-500' : 'border-stone-200'} focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all`}
+                  required
                   placeholder="Please specify quantity, mesh size, and application..."
-                  {...register("message", { required: "Message is required" })}
+                  className="w-full px-5 py-4 bg-stone-50 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none"
                 ></textarea>
-                {errors.message && <p className="mt-1 text-xs text-red-500 font-medium">{errors.message.message}</p>}
               </div>
 
               <div className="pt-4">

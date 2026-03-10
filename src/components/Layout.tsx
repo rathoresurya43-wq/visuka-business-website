@@ -120,80 +120,35 @@ export function Layout() {
 
       {/* Footer */}
       <footer className="bg-stone-900 text-stone-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-20">
-            {/* Company Info */}
-            <div className="space-y-6">
-              <div className="flex items-center space-x-2">
-                <img 
-                  src={visukaLogo} 
-                  alt="Visuka Minerals" 
-                  className="h-16 w-auto object-contain brightness-0 invert"
-                />
-              </div>
-              <p className="text-sm leading-relaxed text-stone-400">
-                A leading manufacturer of industrial minerals, committed to quality, consistency, and sustainable mining practices.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="w-8 h-8 bg-stone-800 flex items-center justify-center rounded-full hover:bg-emerald-800 hover:text-white transition-all">
-                  <Linkedin className="w-4 h-4" />
-                </a>
-                <a href="#" className="w-8 h-8 bg-stone-800 flex items-center justify-center rounded-full hover:bg-emerald-800 hover:text-white transition-all">
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a href="#" className="w-8 h-8 bg-stone-800 flex items-center justify-center rounded-full hover:bg-emerald-800 hover:text-white transition-all">
-                  <Instagram className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-stone-100 font-bold uppercase tracking-wider text-xs mb-6">Company</h3>
-              <ul className="space-y-4 text-sm">
-                <li><Link to="/" className="hover:text-emerald-400 transition-colors">Home</Link></li>
-                <li><Link to="/about" className="hover:text-emerald-400 transition-colors">About Us</Link></li>
-                <li><Link to="/products" className="hover:text-emerald-400 transition-colors">Our Products</Link></li>
-                <li><Link to="/contact" className="hover:text-emerald-400 transition-colors">Contact Us</Link></li>
-              </ul>
-            </div>
-
-            {/* Products */}
-            <div>
-              <h3 className="text-stone-100 font-bold uppercase tracking-wider text-xs mb-6">Products</h3>
-              <ul className="space-y-4 text-sm">
-                <li><Link to="/products" className="hover:text-emerald-400 transition-colors">Calcium Carbonate Powder</Link></li>
-                <li><Link to="/products" className="hover:text-emerald-400 transition-colors">Calcite Lumps</Link></li>
-                <li><Link to="/products" className="hover:text-emerald-400 transition-colors">Calcite Powder</Link></li>
-                <li><Link to="/products" className="hover:text-emerald-400 transition-colors">Uncoated Calcium Carbonate</Link></li>
-              </ul>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            {/* Company Logo */}
+            <div className="flex items-center space-x-3">
+              <img 
+                src={visukaLogo} 
+                alt="Visuka Minerals" 
+                className="h-8 w-auto object-contain brightness-0 invert"
+              />
             </div>
 
             {/* Contact Info */}
-            <div>
-              <h3 className="text-stone-100 font-bold uppercase tracking-wider text-xs mb-6">Contact</h3>
-              <ul className="space-y-4 text-sm">
-                <li className="flex items-start">
-                  <MapPin className="w-5 h-5 mr-3 text-emerald-600 shrink-0" />
-                  <span>123 Industrial Park,<br/>State, Country 12345</span>
-                </li>
-                <li className="flex items-center">
-                  <Phone className="w-5 h-5 mr-3 text-emerald-600 shrink-0" />
-                  <span>+1 (888) VISUKA-01</span>
-                </li>
-                <li className="flex items-center">
-                  <Mail className="w-5 h-5 mr-3 text-emerald-600 shrink-0" />
-                  <span>sales@visuka.com</span>
-                </li>
-              </ul>
+            <div className="flex flex-wrap items-center gap-8 text-xs">
+              <div className="flex items-center">
+                <MapPin className="w-3 h-3 mr-1 text-emerald-600 shrink-0" />
+                <span>F248, Makrana, Rajasthan 341502, India</span>
+              </div>
+              <div className="flex items-center">
+                <Phone className="w-3 h-3 mr-1 text-emerald-600 shrink-0" />
+                <span>+91-8375072152</span>
+              </div>
+              <div className="flex items-center">
+                <Mail className="w-3 h-3 mr-1 text-emerald-600 shrink-0" />
+                <span>sales@visukaminerals.com</span>
+              </div>
             </div>
           </div>
-          <div className="border-t border-stone-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-xs">
-            <p>© 2024 Visuka Minerals & Powders. All rights reserved.</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="hover:text-stone-200">Privacy Policy</a>
-              <a href="#" className="hover:text-stone-200">Terms of Service</a>
-            </div>
+          <div className="border-t border-stone-800 mt-6 pt-6 text-center text-xs">
+            <p>© 2026 Visuka Minerals & Powders. All rights reserved.</p>
           </div>
         </div>
       </footer>

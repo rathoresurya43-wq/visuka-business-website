@@ -1,51 +1,70 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+
+declare global {
+  interface Window {
+    Forminit: any;
+  }
+}
 
 interface ContactFormProps {
   preselectedProduct?: string;
 }
 
 export function ContactForm({ preselectedProduct }: ContactFormProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    email: '',
-    phone: '',
-    product: preselectedProduct || '',
-    message: ''
-  });
-
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [productValue, setProductValue] = useState(preselectedProduct || '');
+  const [phonePlaceholder, setPhonePlaceholder] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // Generate random phone placeholder on mount
+  useEffect(() => {
+    const generateRandomPhone = () => {
+      const digits = [];
+      for (let i = 0; i < 10; i++) {
+        digits.push(Math.floor(Math.random() * 10));
+      }
+      return digits.join('');
+    };
+    setPhonePlaceholder(generateRandomPhone());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('submitting');
-    
-    try {
-      const { error } = await supabase
-        .from('inquiries')
-        .insert([
-          {
-            name: formData.name,
-            company: formData.company,
-            email: formData.email,
-            phone: formData.phone,
-            product_interest: formData.product,
-            message: formData.message,
-            created_at: new Date().toISOString(),
-          }
-        ]);
 
-      if (error) throw error;
-      
+    const form = formRef.current;
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const countryCode = (form.querySelector('#country-code') as HTMLSelectElement)?.value || '+91';
+    const phoneNumber = (form.querySelector('#phone-input') as HTMLInputElement)?.value.replace(/\D/g, '') || '';
+
+    // Combine country code with phone
+    formData.set('fi-sender-phone', countryCode + phoneNumber);
+
+    try {
+      if (window.Forminit) {
+        const forminit = new window.Forminit();
+        const { error } = await forminit.submit('x378q8g10wp', formData);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+      } else {
+        // Fallback if SDK not loaded
+        const response = await fetch('https://forminit.com/f/x378q8g10wp', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Form submission failed');
+        }
+      }
+
       setStatus('success');
-      setFormData({ name: '', company: '', email: '', phone: '', product: '', message: '' });
     } catch (error: any) {
       console.error('Error submitting form:', error);
       setStatus('error');
@@ -72,7 +91,7 @@ export function ContactForm({ preselectedProduct }: ContactFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
+    <form ref={formRef} onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
       <h3 className="text-2xl font-bold text-slate-900 mb-6">Request a Quote</h3>
       
       {status === 'error' && (
@@ -84,26 +103,27 @@ export function ContactForm({ preselectedProduct }: ContactFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-2">Full Name *</label>
+          <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-2">
+            Full Name <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             id="name"
-            name="name"
+            name="fi-sender-fullName"
             required
-            value={formData.name}
-            onChange={handleChange}
             className="w-full px-4 py-3 rounded border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50"
             placeholder="John Doe"
           />
         </div>
         <div>
-          <label htmlFor="company" className="block text-sm font-semibold text-slate-700 mb-2">Company Name</label>
+          <label htmlFor="company" className="block text-sm font-semibold text-slate-700 mb-2">
+            Company Name <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             id="company"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
+            name="fi-text-company"
+            required
             className="w-full px-4 py-3 rounded border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50"
             placeholder="Industrial Co."
           />
@@ -112,40 +132,78 @@ export function ContactForm({ preselectedProduct }: ContactFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email Address *</label>
+          <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
+            Email Address <span className="text-red-500">*</span>
+          </label>
           <input
             type="email"
             id="email"
-            name="email"
+            name="fi-sender-email"
             required
-            value={formData.email}
-            onChange={handleChange}
             className="w-full px-4 py-3 rounded border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50"
             placeholder="john@example.com"
           />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-2">Phone Number *</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            required
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50"
-            placeholder="+1 (555) 000-0000"
-          />
+          <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-2">
+            Phone Number <span className="text-red-500">*</span>
+          </label>
+          <div className="flex">
+            <select
+              id="country-code"
+              className="px-3 py-3 bg-slate-50 rounded-l border border-r-0 border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm"
+            >
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+971">🇦🇪 +971</option>
+              <option value="+966">🇸🇦 +966</option>
+              <option value="+65">🇸🇬 +65</option>
+              <option value="+81">🇯🇵 +81</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+39">🇮🇹 +39</option>
+              <option value="+34">🇪🇸 +34</option>
+              <option value="+7">🇷🇺 +7</option>
+              <option value="+55">🇧🇷 +55</option>
+              <option value="+27">🇿🇦 +27</option>
+              <option value="+20">🇪🇬 +20</option>
+              <option value="+90">🇹🇷 +90</option>
+              <option value="+82">🇰🇷 +82</option>
+              <option value="+62">🇮🇩 +62</option>
+              <option value="+92">🇵🇰 +92</option>
+              <option value="+880">🇧🇩 +880</option>
+              <option value="+94">🇱🇰 +94</option>
+              <option value="+977">🇳🇵 +977</option>
+              <option value="+95">🇲🇲 +95</option>
+              <option value="+84">🇻🇳 +84</option>
+              <option value="+66">🇹🇭 +66</option>
+              <option value="+63">🇵🇭 +63</option>
+              <option value="+60">🇲🇾 +60</option>
+              <option value="+98">🇮🇷 +98</option>
+            </select>
+            <input
+              id="phone-input"
+              type="tel"
+              required
+              placeholder={phonePlaceholder}
+              className="flex-1 px-4 py-3 rounded-r border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50"
+            />
+          </div>
         </div>
       </div>
 
       <div className="mb-6">
-        <label htmlFor="product" className="block text-sm font-semibold text-slate-700 mb-2">Product of Interest</label>
+        <label htmlFor="product" className="block text-sm font-semibold text-slate-700 mb-2">
+          Product of Interest
+        </label>
         <select
           id="product"
-          name="product"
-          value={formData.product}
-          onChange={handleChange}
+          name="fi-text-product"
+          value={productValue}
+          onChange={(e) => setProductValue(e.target.value)}
           className="w-full px-4 py-3 rounded border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50"
         >
           <option value="">Select a product...</option>
@@ -158,13 +216,14 @@ export function ContactForm({ preselectedProduct }: ContactFormProps) {
       </div>
 
       <div className="mb-8">
-        <label htmlFor="message" className="block text-sm font-semibold text-slate-700 mb-2">Message / Requirements</label>
+        <label htmlFor="message" className="block text-sm font-semibold text-slate-700 mb-2">
+          Message / Requirements <span className="text-red-500">*</span>
+        </label>
         <textarea
           id="message"
-          name="message"
+          name="fi-text-message"
           rows={4}
-          value={formData.message}
-          onChange={handleChange}
+          required
           className="w-full px-4 py-3 rounded border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all bg-slate-50 resize-y"
           placeholder="Please describe your requirements, volume, and application..."
         ></textarea>
@@ -179,10 +238,7 @@ export function ContactForm({ preselectedProduct }: ContactFormProps) {
       >
         {status === 'submitting' ? (
           <>
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
             Sending...
           </>
         ) : (

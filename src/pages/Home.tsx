@@ -32,8 +32,8 @@ export function Home() {
               Premium Calcium <br />
               <span className="text-emerald-500">Carbonate & Calcite.</span>
             </h1>
-            <p className="text-lg text-stone-300 mb-10 leading-relaxed max-w-lg">
-              We manufacture high-purity Calcium Carbonate Powder, Calcite Lumps, and Uncoated Calcium Carbonate for the global plastics, paint, and rubber industries.
+            <p className="text-lg text-stone-300 mb-10 leading-relaxed max-w-3xl">
+              Welcome to Visuka Minerals, your trusted partner in high-purity Calcium Carbonate sourcing and supply. We deliver top-grade mineral solutions tailored to the needs of diverse industries around the world. With expertise in advanced processing, quality assurance, and flexible manufacturing, we provide products that enhance performance, consistency, and cost-efficiency for our customers.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
